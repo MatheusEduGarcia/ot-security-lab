@@ -148,7 +148,8 @@ def password_issues(pw: str, user: str = "") -> list[str]:
 class Mosquitto:
     def __init__(self, secure: bool):
         self.secure = secure
-        self.dir = Path(tempfile.mkdtemp(prefix="mosq-", dir=RUNTIME if RUNTIME.exists() else None))
+        RUNTIME.mkdir(parents=True, exist_ok=True)
+        self.dir = Path(tempfile.mkdtemp(prefix="mosq-", dir=RUNTIME))
         if secure:
             p = pki()
             pwf = self.dir / "passwd"
