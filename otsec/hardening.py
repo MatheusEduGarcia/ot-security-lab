@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import datetime as dt
 import ipaddress
+import os
 import shutil
 import subprocess
 import tempfile
@@ -149,9 +150,16 @@ class Mosquitto:
     def __init__(self, secure: bool):
         self.secure = secure
         RUNTIME.mkdir(parents=True, exist_ok=True)
-        self.dir = Path(tempfile.mkdtemp(prefix="mosq-", dir=RUNTIME))
+        # Distro AppArmor profiles (Ubuntu) only let mosquitto read under /etc/mosquitto,
+        # so when we can write there (root) the broker's files go there, removed on exit.
+        etc = Path("/etc/mosquitto")
+        base = etc if etc.is_dir() and os.access(etc, os.W_OK) else RUNTIME
+        self.dir = Path(tempfile.mkdtemp(prefix="otlab-", dir=base))
         if secure:
-            p = pki()
+            src = pki()
+            p = self.dir
+            for f in ("ca.pem", "broker-1.pem", "broker-1.key"):
+                shutil.copy(src / f, p / f)
             pwf = self.dir / "passwd"
             for i, (u, pw) in enumerate(passwords().items()):
                 subprocess.run(["mosquitto_passwd", "-b"] + (["-c"] if i == 0 else []) + [str(pwf), u, pw], check=True)
