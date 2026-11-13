@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import datetime as dt
 import ipaddress
-import os
 import shutil
 import subprocess
 import tempfile
@@ -150,11 +149,7 @@ class Mosquitto:
     def __init__(self, secure: bool):
         self.secure = secure
         RUNTIME.mkdir(parents=True, exist_ok=True)
-        # Distro AppArmor profiles (Ubuntu) only let mosquitto read under /etc/mosquitto,
-        # so when we can write there (root) the broker's files go there, removed on exit.
-        etc = Path("/etc/mosquitto")
-        base = etc if etc.is_dir() and os.access(etc, os.W_OK) else RUNTIME
-        self.dir = Path(tempfile.mkdtemp(prefix="otlab-", dir=base))
+        self.dir = Path(tempfile.mkdtemp(prefix="mosq-", dir=RUNTIME))
         if secure:
             src = pki()
             p = self.dir
