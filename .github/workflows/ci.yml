@@ -12,5 +12,12 @@ jobs:
       # Ubuntu's AppArmor profile only lets mosquitto read /etc/mosquitto; the lab writes its configs elsewhere
       - run: sudo apparmor_parser -R /etc/apparmor.d/usr.sbin.mosquitto 2>/dev/null || true
       - run: pip install -r requirements.txt
+      - name: debug mosquitto
+        run: |
+          sudo aa-status 2>/dev/null | grep -i -A2 mosq || true
+          ls /etc/apparmor.d | grep -i mosq || true
+          sudo mkdir -p /etc/mosquitto/dbg && printf 'listener 18830 127.0.0.1\nallow_anonymous true\n' | sudo tee /etc/mosquitto/dbg/m.conf
+          sudo timeout 2 mosquitto -c /etc/mosquitto/dbg/m.conf -v || true
+          sudo dmesg | grep -i -E "apparmor|denied" | tail -5 || true
       # root is needed for the live firewall (iptables) and loopback capture tests
       - run: sudo -E env "PATH=$PATH" python -m pytest -q -rs
