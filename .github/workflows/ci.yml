@@ -9,7 +9,7 @@ jobs:
         with: {python-version: "3.12"}
       - run: sudo apt-get update && sudo apt-get install -y mosquitto graphviz iptables
       - run: sudo systemctl stop mosquitto || true
-      # Ubuntu's AppArmor profile only lets mosquitto read /etc/mosquitto; unload it on the CI runner; the lab writes its configs elsewhere
+      # Ubuntu's AppArmor profile only lets mosquitto read /etc/mosquitto; the lab writes its broker configs to a temp dir, so unload it on the CI runner
       - run: sudo apparmor_parser -R /etc/apparmor.d/mosquitto 2>/dev/null || true
       - run: pip install -r requirements.txt
       # root is needed for the live firewall (iptables) and loopback capture tests

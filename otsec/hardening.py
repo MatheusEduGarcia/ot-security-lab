@@ -149,7 +149,8 @@ class Mosquitto:
     def __init__(self, secure: bool):
         self.secure = secure
         RUNTIME.mkdir(parents=True, exist_ok=True)
-        self.dir = Path(tempfile.mkdtemp(prefix="mosq-", dir=RUNTIME))
+        # system temp dir: mosquitto drops root to its own user, which may not traverse $HOME
+        self.dir = Path(tempfile.mkdtemp(prefix="otlab-mosq-"))
         if secure:
             src = pki()
             p = self.dir
