@@ -1,0 +1,20 @@
+# Zones and conduits in the sense of IEC 62443-3-2.
+# sl_t is the target security level per foundational requirement (FR1..FR7):
+#   FR1 IAC identification and authentication control, FR2 UC use control,
+#   FR3 SI system integrity, FR4 DC data confidentiality,
+#   FR5 RDF restricted data flow, FR6 TRE timely response to events, FR7 RA resource availability
+zones:
+  cell:        {purdue: 1,   name: Cell 1 control,      assets: [plc-1, plc-2],            sl_t: [2, 2, 2, 1, 2, 2, 3]}
+  supervision: {purdue: 2,   name: Line supervision,    assets: [hmi-1, ews-1, scada-1],   sl_t: [2, 2, 2, 1, 2, 2, 2]}
+  site_ops:    {purdue: 3,   name: Site operations,     assets: [hist-1, broker-1],        sl_t: [2, 2, 2, 2, 2, 2, 2]}
+  dmz:         {purdue: 3.5, name: Industrial DMZ,      assets: [dmz-broker],              sl_t: [3, 3, 2, 2, 3, 2, 2]}
+  enterprise:  {purdue: 4,   name: Enterprise IT,       assets: [office-1, erp-1],         sl_t: [1, 1, 1, 1, 1, 1, 1]}
+
+# Every allowed flow. Anything else between zones is a violation.
+conduits:
+  - {id: C1, from: supervision, to: cell,     src: [hmi-1, scada-1], dst: [plc-1, plc-2], port: 502,  why: operator reads and supervisory control}
+  - {id: C2, from: supervision, to: cell,     src: [ews-1],          dst: [plc-1, plc-2], port: 502,  why: engineering writes, maintenance window only}
+  - {id: C3, from: site_ops,    to: supervision, src: [hist-1],      dst: [scada-1],      port: 4840, why: historian collects through OPC UA, never from the PLCs}
+  - {id: C4, from: supervision, to: site_ops, src: [scada-1],        dst: [broker-1],     port: 8883, why: SCADA publishes to the UNS over TLS}
+  - {id: C5, from: site_ops,    to: dmz,      src: [broker-1],       dst: [dmz-broker],   port: 8883, why: outbound replication to the DMZ only}
+  - {id: C6, from: enterprise,  to: dmz,      src: [erp-1],          dst: [dmz-broker],   port: 8883, why: IT reads plant data from the DMZ, never from the plant}

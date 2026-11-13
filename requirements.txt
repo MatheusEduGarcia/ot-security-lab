@@ -1,0 +1,11 @@
+scapy==2.6.1
+pymodbus==3.8.6
+asyncua==1.1.5
+paho-mqtt==2.1.0
+cryptography
+pyyaml
+pandas
+matplotlib
+networkx
+jupyterlab
+pytest

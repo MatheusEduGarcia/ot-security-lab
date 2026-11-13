@@ -1,0 +1,149 @@
+# System requirements (SR) of IEC 62443-3-3 used in this lab, grouped by foundational requirement.
+# Titles are short identifiers of each requirement, paraphrased; the normative text is in the
+# standard itself (sold by IEC/ISA) and is not reproduced here.
+requirements:
+  - {id: SR 1.1,  fr: IAC, title: Human user identification and authentication}
+  - {id: SR 1.2,  fr: IAC, title: Software process and device identification and authentication}
+  - {id: SR 1.5,  fr: IAC, title: Authenticator management}
+  - {id: SR 1.7,  fr: IAC, title: Strength of password-based authentication}
+  - {id: SR 1.8,  fr: IAC, title: Public key infrastructure certificates}
+  - {id: SR 1.13, fr: IAC, title: Access via untrusted networks}
+  - {id: SR 2.1,  fr: UC,  title: Authorization enforcement}
+  - {id: SR 2.8,  fr: UC,  title: Auditable events}
+  - {id: SR 3.1,  fr: SI,  title: Communication integrity}
+  - {id: SR 3.2,  fr: SI,  title: Malicious code protection}
+  - {id: SR 4.1,  fr: DC,  title: Information confidentiality}
+  - {id: SR 4.3,  fr: DC,  title: Use of cryptography}
+  - {id: SR 5.1,  fr: RDF, title: Network segmentation}
+  - {id: SR 5.2,  fr: RDF, title: Zone boundary protection}
+  - {id: SR 6.1,  fr: TRE, title: Audit log accessibility}
+  - {id: SR 6.2,  fr: TRE, title: Continuous monitoring}
+  - {id: SR 7.1,  fr: RA,  title: Denial of service protection}
+  - {id: SR 7.3,  fr: RA,  title: Control system backup}
+  - {id: SR 7.8,  fr: RA,  title: Control system component inventory}
+
+# Countermeasures. `evidence` are pytest tests that must pass for the control to count.
+# `credit` is this lab's simplified self-assessment of the security level a control
+# supports for one FR; it is a teaching device, not a certification method.
+# `partial` lists requirements the control only covers in part.
+# Status `planned` marks honest gaps that the lab does not implement.
+controls:
+  - id: CTL-INV
+    name: Passive asset inventory from network captures
+    exercise: "01"
+    status: implemented
+    satisfies: [SR 7.8]
+    csf: [ID.AM-01, ID.AM-03]
+    mitigations: []
+    evidence: [tests/test_inventory.py::test_inventory_matches_documented_assets, tests/test_inventory.py::test_rogue_device_is_flagged]
+    credit: {RA: 1}
+  - id: CTL-ZONES
+    name: Zone and conduit model with design rules
+    exercise: "02"
+    status: implemented
+    satisfies: [SR 5.1]
+    csf: [ID.AM-03, PR.IR-01]
+    mitigations: [M0930]
+    evidence: [tests/test_zones.py::test_model_is_consistent, tests/test_zones.py::test_as_found_violations]
+    credit: {RDF: 1}
+  - id: CTL-FW
+    name: Default-deny firewall between zones generated from the conduits
+    exercise: "04"
+    status: implemented
+    satisfies: [SR 5.1, SR 5.2, SR 2.1]
+    csf: [PR.IR-01, PR.AA-05]
+    mitigations: [M0930, M0937, M0807]
+    evidence: [tests/test_segmentation.py::test_policy_matches_conduits, tests/test_segmentation.py::test_live_enforcement]
+    credit: {RDF: 2, UC: 1}
+  - id: CTL-DMZ
+    name: Enterprise reaches plant data only through the DMZ broker
+    exercise: "04"
+    status: implemented
+    satisfies: [SR 5.2, SR 1.13]
+    partial: [SR 1.13]  # removes the direct path; MFA for remote access is still planned
+    csf: [PR.IR-01]
+    mitigations: [M0930]
+    evidence: [tests/test_segmentation.py::test_enterprise_blocked_from_plant]
+    credit: {RDF: 3}
+  - id: CTL-MQTT-TLS
+    name: MQTT over TLS with a private CA
+    exercise: "05"
+    status: implemented
+    satisfies: [SR 3.1, SR 4.1, SR 4.3, SR 1.8]
+    csf: [PR.DS-02]
+    mitigations: [M0808, M0802]
+    evidence: [tests/test_hardening.py::test_mqtt_tls_required]
+    credit: {SI: 2, DC: 2}
+  - id: CTL-MQTT-AUTH
+    name: MQTT without anonymous access, one account per client, strong passwords
+    exercise: "05"
+    status: implemented
+    satisfies: [SR 1.1, SR 1.5, SR 1.7]
+    csf: [PR.AA-01, PR.AA-03]
+    mitigations: [M0804, M0927]
+    evidence: [tests/test_hardening.py::test_mqtt_anonymous_rejected, tests/test_hardening.py::test_password_policy]
+    credit: {IAC: 1}
+  - id: CTL-MQTT-ACL
+    name: Per-topic ACL on the UNS broker
+    exercise: "05"
+    status: implemented
+    satisfies: [SR 2.1]
+    csf: [PR.AA-05]
+    mitigations: [M0800]
+    evidence: [tests/test_hardening.py::test_mqtt_acl]
+    credit: {UC: 2}
+  - id: CTL-OPCUA-SEC
+    name: OPC UA with SignAndEncrypt, application certificates and user login
+    exercise: "05"
+    status: implemented
+    satisfies: [SR 1.1, SR 1.2, SR 1.8, SR 3.1, SR 4.1]
+    csf: [PR.AA-01, PR.DS-02]
+    mitigations: [M0813, M0802, M0808]
+    evidence: [tests/test_hardening.py::test_opcua_rejects_insecure, tests/test_hardening.py::test_opcua_secure_session]
+    credit: {IAC: 2, SI: 2, DC: 2}
+  - id: CTL-IDS
+    name: Modbus allowlist IDS (talkers, function codes, write ranges, rates)
+    exercise: "06"
+    status: implemented
+    satisfies: [SR 6.2, SR 2.8, SR 7.1]
+    partial: [SR 7.1]   # detects a flood but does not limit it
+    csf: [DE.CM-01, DE.AE-02]
+    mitigations: [M0931]
+    evidence: [tests/test_ids.py::test_detects_every_technique, tests/test_ids.py::test_no_false_positives_on_normal_day]
+    credit: {TRE: 2, RA: 2}
+  - id: CTL-MFA
+    name: MFA and a jump host for remote access
+    exercise: "-"
+    status: planned
+    satisfies: [SR 1.13]
+    csf: [PR.AA-03]
+    mitigations: [M0932]
+    evidence: []
+    credit: {IAC: 2}
+  - id: CTL-ALLOWLIST
+    name: Application allowlisting and USB control on the engineering workstation
+    exercise: "-"
+    status: planned
+    satisfies: [SR 3.2]
+    csf: [PR.PS-05]
+    mitigations: [M0938, M0934]
+    evidence: []
+    credit: {SI: 2}
+  - id: CTL-BACKUP
+    name: Offline, tested backups of PLC programs and configurations
+    exercise: "-"
+    status: planned
+    satisfies: [SR 7.3]
+    csf: [PR.DS-11, RC.RP-03]
+    mitigations: [M0953]
+    evidence: []
+    credit: {RA: 2}
+  - id: CTL-SIEM
+    name: Central log collection for OT devices
+    exercise: "-"
+    status: planned
+    satisfies: [SR 6.1]
+    csf: [PR.PS-04, DE.CM-01]
+    mitigations: [M0947]
+    evidence: []
+    credit: {TRE: 2}

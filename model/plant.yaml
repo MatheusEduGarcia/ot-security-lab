@@ -1,0 +1,17 @@
+# Fictional bottling plant used by every exercise.
+# Addresses are on the loopback range so the live exercises run on one machine:
+#   127.0.<zone>.<host>   zone 10 = cell (Purdue L1), 20 = supervision (L2),
+#   30 = site operations (L3), 35 = DMZ (L3.5), 40 = enterprise (L4)
+site: ACME Beverages, Sao Paulo plant
+
+assets:
+  - {id: plc-1,      ip: 127.0.10.11, kind: PLC,        vendor_role: filler controller,   services: [modbus/502]}
+  - {id: plc-2,      ip: 127.0.10.12, kind: PLC,        vendor_role: capper controller,   services: [modbus/502]}
+  - {id: hmi-1,      ip: 127.0.20.21, kind: HMI,        vendor_role: line 1 operator panel, services: [rdp/3389]}
+  - {id: ews-1,      ip: 127.0.20.22, kind: EWS,        vendor_role: engineering workstation, services: []}
+  - {id: scada-1,    ip: 127.0.20.23, kind: SCADA,      vendor_role: OPC UA server and supervisory, services: [opcua/4840]}
+  - {id: hist-1,     ip: 127.0.30.31, kind: Historian,  vendor_role: process historian,   services: []}
+  - {id: broker-1,   ip: 127.0.30.32, kind: Broker,     vendor_role: UNS MQTT broker,     services: [mqtt/1883, mqtts/8883]}
+  - {id: dmz-broker, ip: 127.0.35.41, kind: Broker,     vendor_role: replica broker for IT, services: [mqtts/8883]}
+  - {id: office-1,   ip: 127.0.40.51, kind: Workstation, vendor_role: office PC,          services: []}
+  - {id: erp-1,      ip: 127.0.40.52, kind: Server,     vendor_role: ERP,                 services: [https/443]}

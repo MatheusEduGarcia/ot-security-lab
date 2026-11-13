@@ -1,0 +1,28 @@
+# Threat scenarios for the plant, each tied to a MITRE ATT&CK for ICS technique.
+# likelihood and consequence on a 1..5 scale; controls reduce likelihood when implemented.
+# consequence is the worst of safety, production and quality impact.
+threats:
+  - {id: TH01, technique: T0886, name: Remote Services,                     zone: supervision, likelihood: 4, consequence: 4, controls: {CTL-FW: 1, CTL-DMZ: 1, CTL-MFA: 1},
+     scenario: An attacker on the office network uses the RDP path that remote support left open to the HMI}
+  - {id: TH02, technique: T0846, name: Remote System Discovery,             zone: cell,        likelihood: 5, consequence: 2, controls: {CTL-FW: 2, CTL-IDS: 1},
+     scenario: A rogue laptop plugged into the office network sweeps the cell subnet for Modbus devices}
+  - {id: TH03, technique: T0855, name: Unauthorized Command Message,        zone: cell,        likelihood: 4, consequence: 5, controls: {CTL-FW: 2, CTL-IDS: 1},
+     scenario: Any host that reaches port 502 can write to the PLC, because Modbus has no authentication}
+  - {id: TH04, technique: T0836, name: Modify Parameter,                    zone: cell,        likelihood: 3, consequence: 5, controls: {CTL-FW: 1, CTL-IDS: 1},
+     scenario: The filler speed setpoint is changed to an unsafe value}
+  - {id: TH05, technique: T0842, name: Network Sniffing,                    zone: site_ops,    likelihood: 4, consequence: 3, controls: {CTL-MQTT-TLS: 2},
+     scenario: MQTT in clear text exposes the SCADA account and every process value}
+  - {id: TH06, technique: T0859, name: Valid Accounts,                      zone: site_ops,    likelihood: 4, consequence: 3, controls: {CTL-MQTT-AUTH: 1, CTL-MQTT-TLS: 1, CTL-MQTT-ACL: 1},
+     scenario: The sniffed SCADA password is reused to connect to the broker}
+  - {id: TH07, technique: T0856, name: Spoof Reporting Message,             zone: site_ops,    likelihood: 3, consequence: 4, controls: {CTL-MQTT-ACL: 2},
+     scenario: A client publishes fake machine states into the UNS, misleading operators and the OEE}
+  - {id: TH08, technique: T0830, name: Adversary-in-the-Middle,             zone: supervision, likelihood: 2, consequence: 3, controls: {CTL-OPCUA-SEC: 1},
+     scenario: The historian to SCADA OPC UA link is intercepted and values are altered}
+  - {id: TH09, technique: T0814, name: Denial of Service,                   zone: cell,        likelihood: 3, consequence: 4, controls: {CTL-FW: 1, CTL-IDS: 1},
+     scenario: A flood of Modbus requests saturates the PLC communication task}
+  - {id: TH10, technique: T0816, name: Device Restart/Shutdown,             zone: cell,        likelihood: 2, consequence: 4, controls: {CTL-FW: 1},
+     scenario: A Modbus diagnostics request restarts the PLC communication}
+  - {id: TH11, technique: T0843, name: Program Download,                    zone: cell,        likelihood: 2, consequence: 5, controls: {CTL-ALLOWLIST: 1, CTL-BACKUP: 1},
+     scenario: Malware on the engineering workstation downloads a modified program to the PLC}
+  - {id: TH12, technique: T0847, name: Replication Through Removable Media, zone: supervision, likelihood: 3, consequence: 5, controls: {CTL-ALLOWLIST: 2},
+     scenario: An infected USB stick brought by a contractor runs on the engineering workstation}
