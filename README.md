@@ -26,7 +26,8 @@ A fictional bottling plant (PLCs on Modbus, SCADA on OPC UA, a UNS on MQTT) is t
 5. [Protocol hardening: MQTT and OPC UA](#5-protocol-hardening-mqtt-and-opc-ua)
 6. [Intrusion detection for Modbus](#6-intrusion-detection-for-modbus)
 7. [Compliance as code](#7-compliance-as-code)
-8. [Run it yourself](#8-run-it-yourself)
+8. [How the notebooks teach](#how-the-notebooks-teach)
+9. [Run it yourself](#8-run-it-yourself)
 
 ---
 
@@ -201,6 +202,35 @@ For protocols with no security of their own, **segmentation is the authenticatio
 | SR 7.8 | Control system component inventory | CTL-INV | ✅ met |
 
 The full generated table is in [`docs/compliance_matrix.md`](docs/compliance_matrix.md). Seen through **NIST CSF 2.0**, the lab is strong on Identify, Protect and Detect, and has nothing yet on Respond and almost nothing on Recover: the natural next steps are an OT incident response plan, tabletop exercises and tested PLC restores.
+
+---
+
+## How the notebooks teach
+
+The notebooks are in Portuguese and committed **already executed**, so they read on GitHub without installing anything. Every one has the same structure:
+
+| Block | What it is for |
+|---|---|
+| **Antes de começar** | who it is for, prerequisites, time, what you will be able to do, where it shows up in a plant, and one analogy |
+| **Concept, then experiment** | a short explanation followed by a cell that proves it, with the real output kept |
+| **Pare e preveja** | before the key experiments, a question to answer before running the cell |
+| **Leitura do resultado** | what the output means, right under it |
+| **Erros comuns** | the mistakes people actually make |
+| **Teste seu entendimento** | three questions with answers hidden behind a click |
+| **Exercícios**, **Glossário**, **Próximo passo** | things to try, the vocabulary, and the link to the next notebook |
+
+| # | Notebook | You learn to |
+|---|---|---|
+| 00 | [Normas e referências](notebooks/00_normas_e_referencias.ipynb) | place IEC 62443, NIST 800-82, CSF and ATT&CK for ICS, and explain SL-T, SL-C, SL-A |
+| 01 | [Inventário de ativos](notebooks/01_inventario_de_ativos.ipynb) | build an inventory from a capture and spot forgotten services |
+| 02 | [Zonas e conduítes](notebooks/02_zonas_e_conduites.ipynb) | group assets into zones, justify conduits, confront design with traffic |
+| 03 | [Avaliação de risco](notebooks/03_avaliacao_de_risco.ipynb) | score inherent and residual risk and read the SL-T to SL-A gap |
+| 04 | [Segmentação na prática](notebooks/04_segmentacao_na_pratica.ipynb) | generate firewall rules from the model and test them with real connections |
+| 05 | [Hardening de protocolos](notebooks/05_hardening_de_protocolos.ipynb) | turn on TLS, accounts and ACLs in MQTT and the three security layers of OPC UA |
+| 06 | [Detecção de intrusão](notebooks/06_deteccao_de_intrusao.ipynb) | learn a baseline, map rules to ATT&CK techniques, score a detector honestly |
+| 07 | [Matriz de conformidade](notebooks/07_matriz_de_conformidade.ipynb) | tie each requirement to a control and to evidence that runs in CI |
+
+The didactic layer lives in [`tools/didatico_conteudo.py`](tools/didatico_conteudo.py) and is applied with `python tools/didatico.py tools/didatico_conteudo.py .`, so it survives re-running a notebook.
 
 ---
 
